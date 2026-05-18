@@ -1,4 +1,5 @@
 const express = require ("express");
+const morgan = require("morgan")
 const app = express();
 
 let persons=[
@@ -23,7 +24,18 @@ let persons=[
         number : "39-23-6423122"
     }
 ];
-
+morgan.token("body", function (req,res){return JSON.stringify(req.body)})
+morgan.token("theToken", function (tokens,req,res){
+    return [
+        tokens.method(req,res),
+        tokens.url(req,res),
+        tokens.status(req,res),
+        tokens.res(res,res, "content-length"), "-",
+        tokens["response-time"](req,res), "ms",
+        tokens.body(req,res)
+    ]
+})
+app.use(morgan("theToken"))
 app.use(express.json());
 
 app.get("/api/persons", (request , response)=>{
@@ -78,7 +90,7 @@ app.post("/api/persons/", (request, response)=>{
     response.status(201).json(person)
 })
 
-console.log(persons.map(person=> person))
+
 const PORT = 3001;
 app.listen(PORT, ()=>{
     console.log(`server is running on port ${PORT}`);
