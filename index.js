@@ -6,7 +6,7 @@ app.use(cors())
 let persons=[
     {
         id : "1",
-        name : "Arto Hellas",
+        name : "mohammed",
         number : "040-123456"
     },
     {
@@ -38,6 +38,9 @@ morgan.token("theToken", function (tokens,req,res){
 })
 app.use(morgan("theToken"))
 app.use(express.json());
+app.get("/", (req,res)=>{
+    res.send("<h2> The backend is running </h2>")
+})
 
 app.get("/api/persons", (request , response)=>{
     return response.json(persons)
