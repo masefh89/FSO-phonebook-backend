@@ -39,7 +39,7 @@ morgan.token("theToken", function (tokens,req,res){
 app.use(morgan("theToken"))
 app.use(express.json());
 app.get("/", (req,res)=>{
-    res.send("<h2> The backend is running </h2>")
+    return res.send("<h2> The backend is running </h2>")
 })
 
 app.get("/api/persons", (request , response)=>{
