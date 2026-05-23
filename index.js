@@ -1,31 +1,11 @@
+require("dotenv").config()
 const express = require ("express");
+const Person = require("./modules/person")
 const morgan = require("morgan")
 
 const app = express();
 app.use(express.static("dist"))
 
-let persons=[
-    {
-        id : "1",
-        name : "mohammed",
-        number : "040-123456"
-    },
-    {
-        id : "2",
-        name : "Ada Lovelace",
-        number : "39-44-5323523"
-    },
-    {
-        id : "3",
-        name : "Dan Abramov",
-        number : "12-43-234245"
-    },
-    {
-        id : "4",
-        name : "Mary Poppendieck",
-        number : "39-23-6423122"
-    }
-];
 morgan.token("body", function (req,res){return JSON.stringify(req.body)})
 morgan.token("theToken", function (tokens,req,res){
     return [
@@ -44,26 +24,35 @@ app.get("/", (req,res)=>{
 })
 
 app.get("/api/persons", (request , response)=>{
-    return response.json(persons)
+    Person.find({}).then(result=>{
+        console.log(`the result of get request ${result.length}`)
+        return response.json(result)
+    })
+    
 });
 app.get("/info", (request, response)=>{
     const date = new Date()
-    const info = (`<div>
-    <h2>Phonebook has info for ${persons.length} people</h2>
-    <h3>${date}</h3>
-    </div>`)
-    response.send(info)
+    Person.find({}).then(result=>{
+        const info = (`<div>
+        <h2>Phonebook has info for ${result.length} people</h2>
+        <h3>${date}</h3>
+        </div>`)
+        response.send(info)
+    })
+    
 })
+
 app.get("/api/persons/:id", (request, response)=>{
     const id = request.params.id
-    const person = persons.find(person => person.id === id)
-    if (!person){
-        return response.status(404).end()
-    }
-    
-    response.json(person)
-    
+    console.log(id)
+    Person.findById(id).then(result=>{
+        if (!result){
+            return response.status(404).end()
+        }
+        response.json(result)
+    })  
 })
+
 app.delete("/api/persons/:id", (request, response) =>{
     const id = request.params.id;
     const person = persons.find(person => person.id === id)
@@ -76,23 +65,39 @@ app.delete("/api/persons/:id", (request, response) =>{
     
 })
 app.post("/api/persons/", (request, response)=>{
-    const randomId = Math.floor(Math.random() * 1000000)
+    
     const body = request.body
     const reqName = body.name;
     const reqNumber = body.number;
-    const checkName = persons.find(person=> person.name === reqName)
+    
+    const checkName = Person.find({name:reqName}).then(result=>{
+        console.log(`the result ${Array.isArray(result)}`)
+    })
     if(!reqName){
         return response.status(400).json({error : "name is required"})
     }
-    else if(!reqNumber){
+    if(!reqNumber){
         return response.status(400).json({error : "number is required"})
     }
-    else if(checkName){
-        return response.status(400).json({error:"name should be unique"})
+    if(checkName){
+        console.log(`we are checking if there is a name with ${checkName}`)
+        //return response.status(400).json({error:"name should be unique"})
     }
-    const person = {name : reqName, number : reqNumber, id : String(randomId)}
-    persons = persons.concat(person);
-    response.status(201).json(person)
+    
+    //console.log(`here is the find method's result ${checkName.name}`)
+    const person=new Person({
+        name:reqName,
+        number:reqNumber
+    })
+    person.save().then(
+        result=>{
+            console.log(`we posted ${result.name} and ${result.number} to mongodb`)
+            response.json(result)
+        }
+    )
+    .catch(error=>{
+        console.log(`error for posting the data to mongodb: ${error.message}`)
+    })
 })
 
 

@@ -1,7 +1,9 @@
-post  http://localhost:3001/api/persons/
+POST  http://localhost:3001/api/persons/
 Content-Type: application/json
 
 {
-    "name" : "Mohammed Asef Hashemi",
+    "name" : "Mohammed sqweaw",
     "number" : "0469-66-2028"
 }
+###
+GET http://localhost:3001/api/persons/6a10a16925de267d45a7331f
