@@ -53,52 +53,61 @@ app.get("/api/persons/:id", (request, response)=>{
     })  
 })
 
-app.delete("/api/persons/:id", (request, response) =>{
+app.delete("/api/persons/:id", (request, response, next) =>{
     const id = request.params.id;
-    const person = persons.find(person => person.id === id)
-    if (!person){
-        return response.status(404).end()
-    }
-    
-    persons = persons.filter((person=>person.id !== id))
-    response.status(204).end()
-    
-})
-app.post("/api/persons/", (request, response)=>{
-    
-    const body = request.body
-    const reqName = body.name;
-    const reqNumber = body.number;
-    
-    const checkName = Person.find({name:reqName}).then(result=>{
-        console.log(`the result ${Array.isArray(result)}`)
-    })
-    if(!reqName){
-        return response.status(400).json({error : "name is required"})
-    }
-    if(!reqNumber){
-        return response.status(400).json({error : "number is required"})
-    }
-    if(checkName){
-        console.log(`we are checking if there is a name with ${checkName}`)
-        //return response.status(400).json({error:"name should be unique"})
-    }
-    
-    //console.log(`here is the find method's result ${checkName.name}`)
-    const person=new Person({
-        name:reqName,
-        number:reqNumber
-    })
-    person.save().then(
-        result=>{
-            console.log(`we posted ${result.name} and ${result.number} to mongodb`)
-            response.json(result)
+    Person.findByIdAndDelete(id).then(
+        person=>{
+            if(!person){
+               return response.status(404).end()
+            }
+            response.status(204).end()
         }
-    )
-    .catch(error=>{
-        console.log(`error for posting the data to mongodb: ${error.message}`)
-    })
+        )
+            .catch(error =>{ next(error)})
+    
 })
+app.post("/api/persons", (req, res, next)=>{
+    const {name , number} = req.body
+    Person.findOne({name:name}).then(result=>{
+        if (result){
+            return res.status(400).send("name should be unique").end()
+        }
+        const person = new Person({
+            name: name,
+            number: number
+        })
+        person.save().then(savedPerson =>{return res.json(savedPerson)}
+        ).catch(error=> { next(error)})
+    }).catch(error=>{ next(error)})
+})
+app.put("/api/persons/:id", (request, response, next)=>{
+    const {name, number} = request.body
+    Person.findById(request.params.id).then(person=>{
+        console.log(`the update log person ${person}`)
+        if (!person){return response.status(404).end()}
+        person.name = name;
+        person.number = number;
+        return person.save().then(updatedPerson => {
+            console.log(`updatedPerson ${updatedPerson}`)
+            response.json(updatedPerson)
+        })
+    })
+    .catch(error=>{ next(error)})
+});
+
+
+const errorHandler=(error, request, response, next)=>{
+    console.log(error.message)
+    if (error.name === "CastError"){
+       return response.status(400).send({error: "mlformated id"})
+    }
+    else if (error.name === "ValidationError"){
+        return response.status(400).send({error: error.message})
+    }
+    next(error)
+};
+
+app.use(errorHandler)
 
 
 const PORT = process.env.PORT || 3001

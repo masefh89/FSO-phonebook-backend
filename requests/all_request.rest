@@ -2,8 +2,19 @@ POST  http://localhost:3001/api/persons/
 Content-Type: application/json
 
 {
-    "name" : "Mohammed sqweaw",
+    "name" : "ja",
     "number" : "0469-66-2028"
 }
 ###
-GET http://localhost:3001/api/persons/6a10a16925de267d45a7331f
+GET http://localhost:3001/info
+
+###
+DELETE http://localhost:3001/api/persons/6a10bc0ef593f149214523a3
+
+###
+
+PUT http://localhost:3001/api/persons/6a10bc0ef593f149214523a3
+Content-Type: application/json
+
+{"name" : "Mohammed Asef Hashemi",
+"number": "70007777770" }
