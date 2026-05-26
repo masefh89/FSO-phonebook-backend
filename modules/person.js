@@ -18,7 +18,18 @@ const personSchema = new mongoose.Schema({
         minLength : 3,
         required : true
     },
-    number: String
+    number: {
+        required: true,
+        type:String,
+        minLength : 8,
+        validate:{
+            validator:function(value){
+            return /\d{2,3}-\d+/.test(value)
+        },
+        
+        message: props => `number should be in two parts, first part can includes 2 or 3 digits and then the rest `
+        }
+    }
 })
 
 personSchema.set("toJSON",{
